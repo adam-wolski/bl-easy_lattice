@@ -126,6 +126,7 @@ def findBBox(obj, selvertsarray):
     mat = buildTrnSclMat(obj)
     mat_world = obj.matrix_world
     
+    
     minx = selvertsarray[0].co.x
     miny = selvertsarray[0].co.y
     minz = selvertsarray[0].co.z
