@@ -53,13 +53,11 @@ def createLattice(obj, size, pos):
     ob.rotation_euler = rot
     
     # Debug
-    trans_mat = mathutils.Matrix.Translation(loc)
-    trans_mat *= mathutils.Matrix.Scale(scl.x, 4, (1.0, 0.0, 0.0))
-    trans_mat *= mathutils.Matrix.Scale(scl.y, 4, (0.0, 1.0, 0.0))
-    trans_mat *= mathutils.Matrix.Scale(scl.z, 4, (0.0, 0.0, 1.0))
-    
-
-    print("trans mat", trans_mat) 
+#     trans_mat = mathutils.Matrix.Translation(loc)
+#     trans_mat *= mathutils.Matrix.Scale(scl.x, 4, (1.0, 0.0, 0.0))
+#     trans_mat *= mathutils.Matrix.Scale(scl.y, 4, (0.0, 1.0, 0.0))
+#     trans_mat *= mathutils.Matrix.Scale(scl.z, 4, (0.0, 0.0, 1.0))
+#     print("trans mat", trans_mat) 
     
     ob.show_x_ray = True
     # Link object to scene
@@ -73,9 +71,9 @@ def createLattice(obj, size, pos):
     lat.interpolation_type_v = 'KEY_LINEAR'
     lat.interpolation_type_w = 'KEY_LINEAR'
     lat.use_outside = False
-    lat.points_u = 3
-    lat.points_v = 3
-    lat.points_w = 3
+    lat.points_u = 4
+    lat.points_v = 4
+    lat.points_w = 4
  
     # Set lattice points
 #    s = 0.0
@@ -177,6 +175,8 @@ def findBBox(obj, selvertsarray):
     
     minpoint = mat * mathutils.Vector((minx, miny, minz))
     maxpoint = mat * mathutils.Vector((maxx, maxy, maxz))
+    
+    #middle point has to be calculated based on the real world matrix
     middle = mat_world * mathutils.Vector((x_sum / float(c), y_sum / float(c), z_sum / float(c)))
     print("minpoint", minpoint)
     print("maxpoint", maxpoint)
