@@ -18,11 +18,12 @@ import mathutils
 def modifiersDelete(obj):
     for mod in obj.modifiers:
         if mod.name == "latticeeasytemp":
-            if mod.object=="":
+            try:
+                if mod.object==bpy.data.objects['LatticeEasytTemp']:
+                    bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
+                    
+            except:
                 bpy.ops.object.modifier_remove(modifier=mod.name)
-            
-            else:
-                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
         
 # Cleanup
 def latticeDelete():
@@ -69,8 +70,8 @@ def createLattice(obj, size, pos):
  
     # Set lattice attributes
     lat.interpolation_type_u = 'KEY_LINEAR'
-    lat.interpolation_type_v = 'KEY_CARDINAL'
-    lat.interpolation_type_w = 'KEY_BSPLINE'
+    lat.interpolation_type_v = 'KEY_LINEAR'
+    lat.interpolation_type_w = 'KEY_LINEAR'
     lat.use_outside = False
     lat.points_u = 3
     lat.points_v = 3
@@ -125,15 +126,15 @@ def getTransformations(obj):
 def findBBox(obj, selvertsarray):
     
     mat = buildTrnSclMat(obj)
-    mat = obj.matrix_world
+    mat_world = obj.matrix_world
     
-    minx = 0
-    miny = 0
-    minz = 0
+    minx = selvertsarray[0].co.x
+    miny = selvertsarray[0].co.y
+    minz = selvertsarray[0].co.z
     
-    maxx = 0
-    maxy = 0
-    maxz = 0
+    maxx = selvertsarray[0].co.x
+    maxy = selvertsarray[0].co.y
+    maxz = selvertsarray[0].co.z
     print("")    
     
     # Median Centers
@@ -141,11 +142,13 @@ def findBBox(obj, selvertsarray):
     y_sum = 0
     z_sum = 0
     
-    c = 0
-    for vert in selvertsarray:
+    c = 1
+#     for vert in selvertsarray:
+    for c in range(len(selvertsarray)):
         # co=obj.matrix_world*vert.co.to_4d()
         
-        co = vert.co
+#         co = vert.co
+        co = selvertsarray[c].co
         # co=obj.matrix_world*vert.co
         
         x_sum += co.x
@@ -169,10 +172,15 @@ def findBBox(obj, selvertsarray):
     # print ("martix decompose ", matrix_decomp)
 
     # Based on world coords
+    print(" minx miny minz",minx, miny, minz )
+    print(" maxx maxy maxz",maxx, maxy, maxz )
+    
     minpoint = mat * mathutils.Vector((minx, miny, minz))
     maxpoint = mat * mathutils.Vector((maxx, maxy, maxz))
-    middle = mat * mathutils.Vector((x_sum / float(c), y_sum / float(c), z_sum / float(c)))
-    # middle=(maxpoint+minpoint)/2
+    middle = mat_world * mathutils.Vector((x_sum / float(c), y_sum / float(c), z_sum / float(c)))
+    print("minpoint", minpoint)
+    print("maxpoint", maxpoint)
+
     
     size = maxpoint - minpoint
     size = mathutils.Vector((abs(size.x), abs(size.y), abs(size.z)))
