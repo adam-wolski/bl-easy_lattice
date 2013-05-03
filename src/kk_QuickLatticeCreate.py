@@ -18,9 +18,12 @@ import mathutils
 def modifiersDelete(obj):
     for mod in obj.modifiers:
         if mod.name == "latticeeasytemp":
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
-            # py.ops.object.modifier_remove(modifier=mod.name)
-
+            if mod.object=="":
+                bpy.ops.object.modifier_remove(modifier=mod.name)
+            
+            else:
+                bpy.ops.object.modifier_apply(apply_as='DATA', modifier=mod.name)
+        
 # Cleanup
 def latticeDelete():
     bpy.ops.object.select_all(action='DESELECT')
