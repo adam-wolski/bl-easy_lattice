@@ -125,7 +125,8 @@ def findBBox(obj, selvertsarray):
     
     mat = buildTrnSclMat(obj)
     mat_world = obj.matrix_world
-    
+    print("mat_final", mat)
+    print("mat_world", mat_world)
     
     minx = selvertsarray[0].co.x
     miny = selvertsarray[0].co.y
@@ -137,10 +138,11 @@ def findBBox(obj, selvertsarray):
     print("")    
     
     # Median Centers
-    x_sum = 0
-    y_sum = 0
-    z_sum = 0
+    x_sum = minx
+    y_sum = miny
+    z_sum = minz
     
+    middle=mathutils.Vector((x_sum, y_sum,z_sum))
     c = 1
 #     for vert in selvertsarray:
     for c in range(len(selvertsarray)):
@@ -150,9 +152,10 @@ def findBBox(obj, selvertsarray):
         co = selvertsarray[c].co
         # co=obj.matrix_world*vert.co
         
-        x_sum += co.x
-        y_sum += co.y
-        z_sum += co.z
+#         x_sum += co.x
+#         y_sum += co.y
+#         z_sum += co.z
+#         middle+=co
         
         if co.x < minx: minx = co.x
         if co.y < miny: miny = co.y
@@ -162,25 +165,28 @@ def findBBox(obj, selvertsarray):
         if co.y > maxy: maxy = co.y
         if co.z > maxz: maxz = co.z
         
-        # print("local cord", vert.co)
-        # print("world cord", co)
+        print("local cord", selvertsarray[c].co)
+#         print("world cord", co)
         c += 1
         
+    print("total verts", len(selvertsarray))
+    print("counted verts",c)
     # DEBUG
 #     matrix_decomp=obj.matrix_world.decompose()
     # print ("martix decompose ", matrix_decomp)
 
     # Based on world coords
-    print(" minx miny minz",minx, miny, minz )
-    print(" maxx maxy maxz",maxx, maxy, maxz )
+    print("-> minx miny minz",minx, miny, minz )
+    print("-> maxx maxy maxz",maxx, maxy, maxz )
     
     minpoint = mat * mathutils.Vector((minx, miny, minz))
     maxpoint = mat * mathutils.Vector((maxx, maxy, maxz))
     
     #middle point has to be calculated based on the real world matrix
-    middle = mat_world * mathutils.Vector((x_sum / float(c), y_sum / float(c), z_sum / float(c)))
-    print("minpoint", minpoint)
-    print("maxpoint", maxpoint)
+#     middle = mat_world * mathutils.Vector((x_sum, y_sum, z_sum))/float(c)
+    middle = mat_world*((minpoint+maxpoint)/2)
+    print("-@ minpoint", minpoint)
+    print("-@ maxpoint", maxpoint)
 
     
     size = maxpoint - minpoint
@@ -197,10 +203,10 @@ def findBBox(obj, selvertsarray):
     # DEBUG
 #     bpy.context.scene.cursor_location=middle
     
-    print("world matrix", obj.matrix_world)
-    print("min - max", minpoint, " ", maxpoint)
-    print("size", size)
-    print("median point ->", middle)
+    #print("-@ world matrix", obj.matrix_world)
+    print("-@ min - max", minpoint, " ", maxpoint)
+    print("-@ size", size)
+    print("-@ median point ->", middle)
 
     # return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
     return [minpoint, maxpoint, size, middle  ]
@@ -216,7 +222,7 @@ def buildTrnSclMat(obj):
     
     mat_final = mat_trans * mat_scale
     
-    print("mat_final", mat_final)
+    
     return mat_final
     
 def run():
