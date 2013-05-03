@@ -1,40 +1,42 @@
-#----------------------------------------------------------
-# File lattice.py
-#----------------------------------------------------------
-
-#TODO Calcuate the final position of objects
+#TODO Calculate the final position of objects
 
 import bpy
 import mathutils
  
-def createIcoSphere(origin):
-    # Create an icosphere
-    bpy.ops.mesh.primitive_ico_sphere_add(location=origin) 
-    ob = bpy.context.object
-    me = ob.data
- 
-    # Create vertex groups
-    upper = ob.vertex_groups.new('Upper')
-    lower = ob.vertex_groups.new('Lower')
-    for v in me.vertices:
-        if v.co[2] > 0.001:
-            upper.add([v.index], 1.0, 'REPLACE')
-        elif v.co[2] < -0.001:
-            lower.add([v.index], 1.0, 'REPLACE')
-        else:
-            upper.add([v.index], 0.5, 'REPLACE')
-            lower.add([v.index], 0.5, 'REPLACE')
-    return ob
- 
-def createLattice(size,pos):
+def createLattice(obj,size,pos):
     # Create lattice and object
-    lat = bpy.data.lattices.new('MyLattice')
+    lat = bpy.data.lattices.new('EasyLatticeTemp')
     ob = bpy.data.objects.new('LatticeObject', lat)
     
-    ob.scale=size
-    ob.location=pos
+    loc=getTransformations(obj)[0]
+    rot=getTransformations(obj)[1]
+    scl=getTransformations(obj)[2]
     
-   
+    
+    
+    ob.location=pos
+    #ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
+    
+    #size=values from selection bbox
+    #temp=size.z
+    #size.z=size.x
+    #size.x=temp
+    #ob.scale=mathutils.Vector((size.x,size.y,size.z))
+    ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
+    #ob.scale=(size.x*scl.x, size.z*scl.z,size.y*scl.y)
+    ob.scale=size
+    ob.rotation_euler=rot
+    
+
+    #Debug
+    trans_mat=mathutils.Matrix.Translation(loc)
+    trans_mat*=mathutils.Matrix.Scale(scl.x, 4, (1.0, 0.0, 0.0))
+    trans_mat*=mathutils.Matrix.Scale(scl.y, 4, (0.0, 1.0, 0.0))
+    trans_mat*=mathutils.Matrix.Scale(scl.z, 4, (0.0, 0.0, 1.0))
+    
+
+    print("trans mat",trans_mat) 
+    
     ob.show_x_ray = True
     # Link object to scene
     scn = bpy.context.scene
@@ -47,34 +49,58 @@ def createLattice(size,pos):
     lat.interpolation_type_v = 'KEY_CARDINAL'
     lat.interpolation_type_w = 'KEY_BSPLINE'
     lat.use_outside = False
-    lat.points_u = 2
-    lat.points_v = 2
-    lat.points_w = 2
+    lat.points_u = 3
+    lat.points_v = 3
+    lat.points_w = 3
  
     # Set lattice points
-    s = 1.0
-    points = [
-        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
-        (-s,-s,s), (s,-s,s), (-s,s,s), (s,s,s)
-    ]
-    for n,pt in enumerate(lat.points):
-        for k in range(3):
-            #pt.co[k] = points[n][k]
-            pass
+#    s = 0.0
+#    points = [
+#        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
+#        (-s,-s,s), (s,-s,s), (-s,s,s), (s,s,s)
+#    ]
+#    for n,pt in enumerate(lat.points):
+#        for k in range(3):
+#            #pt.co[k] = points[n][k]
+#            pass
     return ob
 
 
-def selectedVerts(obj):
+def selectedVerts_Grp(obj):
 #     vertices=bpy.context.active_object.data.vertices
     vertices=obj.data.vertices
     
-    selverts=[vert for vert in vertices if vert.select==True]
+    selverts=[]
     
-    print(selverts)
+    if obj.mode=="EDIT":
+        bpy.ops.object.editmode_toggle()
+
+    for grp in obj.vertex_groups:
+        
+        if "templatticegrp" in grp.name:
+            bpy.ops.object.vertex_group_set_active(group=grp.name)
+            bpy.ops.object.vertex_group_remove()
+        
+    tempgroup=obj.vertex_groups.new("templatticegrp")
+    
+    #selverts=[vert for vert in vertices if vert.select==True]
+    for vert in vertices:
+        if vert.select==True:
+            selverts.append(vert)
+            tempgroup.add([vert.index], 1.0, "REPLACE")
+    
+    #print(selverts)
     
 #    print(type(selverts[0]))    
+    
     return selverts
 
+def getTransformations(obj):
+    rot=obj.rotation_euler
+    loc=obj.location
+    size=obj.scale
+
+    return [loc,rot,size]
 
 def findBBox(obj,selvertsarray):
     minx=0
@@ -84,15 +110,17 @@ def findBBox(obj,selvertsarray):
     maxx=0
     maxy=0
     maxz=0
-    print("  ")    
+    print("")    
     
-    #Media Centers
+    #Median Centers
     x_sum=0
     y_sum=0
     z_sum=0
     
     for vert in selvertsarray:
-        co=vert.co*obj.matrix_world
+        #co=obj.matrix_world*vert.co.to_4d()
+        #co=obj.matrix_world.inverted()*vert.co
+        co=vert.co
         x_sum+=co.x
         y_sum+=co.y
         z_sum+=co.z
@@ -107,12 +135,47 @@ def findBBox(obj,selvertsarray):
         
         print("local cord", vert.co)
         print("world cord", co)
+        
+    #DEBUG
+    matrix_decomp=obj.matrix_world.decompose()
+    print ("martix decompose ", matrix_decomp)
+    #Zero out the rotation) 
+    matrix_decomp[1][1]=0
+    matrix_decomp[1][2]=0
+    matrix_decomp[1][3]=0
+    
+    minpoint=obj.matrix_world*mathutils.Vector((minx,miny,minz))
+    
+    maxpoint=obj.matrix_world*mathutils.Vector((maxx,maxy,maxz))
+    
+    middle=obj.matrix_world*mathutils.Vector((x_sum/float(len(selvertsarray)), y_sum/float(len(selvertsarray)), z_sum/float(len(selvertsarray))))
+    
+    size=maxpoint-minpoint
+    size=mathutils.Vector((abs(size.x),abs(size.y),abs(size.z)))
+    #size=mathutils.Vector((0,0,abs(size.z)))
+    
+    #####################################################
+    #minpoint=mathutils.Vector((minx,miny,minz))
+    
+    #maxpoint=mathutils.Vector((maxx,maxy,maxz))
+    
+    #middle=mathutils.Vector( (x_sum/float(len(selvertsarray)), y_sum/float(len(selvertsarray)), z_sum/float(len(selvertsarray))) )
+    
+    #size=maxpoint-minpoint
+    #size=mathutils.Vector((abs(size.x),abs(size.y),abs(size.z)))
+    
+    #####################################################
+    
+    
+    #pos_median=[x_sum/len(selvertsarray), y_sum/len(selvertsarray), z_sum/len(selvertsarray)]     
+    
+    print("world matrix", obj.matrix_world)
+    print("min - max", minpoint," ",maxpoint)
+    print("size",size)
+    print("median point ->",middle)
 
-    pos_median=[x_sum/len(selvertsarray), y_sum/len(selvertsarray), z_sum/len(selvertsarray)]            
-    print("min - max", minx," ", miny," ", minz, " ",  maxx," ", maxy," ", maxz)
-    print("median point ->",pos_median)
-
-    return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
+    #return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
+    return [minpoint,maxpoint,size, middle  ]
 
 
 def latticeDelete():
@@ -122,8 +185,7 @@ def latticeDelete():
         bpy.ops.object.select_pattern(pattern="Lat*")
         bpy.ops.object.delete(use_global=False) 
     
-def run(origin):
-    #sphere = createIcoSphere(origin)
+def run():
     
     # Create lattice modifier
     #mod = sphere.modifiers.new('Lat', 'LATTICE')
@@ -131,34 +193,66 @@ def run(origin):
     #mod.vertex_group = 'Upper'
     # Lattice in edit mode for easy deform
     
-    
-    
     #-----
     #Delete all the lattices for testing
     latticeDelete()
     
     obj=bpy.context.active_object
-    selvertsarray=selectedVerts(obj)
+    selvertsarray=selectedVerts_Grp(obj)
     bbox=findBBox(obj,selvertsarray)
     
-    latsize=[bbox[0]-bbox[3], bbox[1]-bbox[4], bbox[2]-bbox[5]]
+    #latsize=[bbox[3]-bbox[0], bbox[4]-bbox[1], bbox[5]-bbox[2]]
+    #size=mathutils.Vector( (abs(latsize[0]), abs(latsize[1]), abs(latsize[2])) )
     
+    size=bbox[2]
+    #pos=mathutils.Vector( ( bbox[3][0], bbox[3][1], bbox[3][2]) )
+    pos=bbox[3]
     
-    size=mathutils.Vector( (abs(latsize[0]), abs(latsize[1]), abs(latsize[2])) )
-    pos=mathutils.Vector( ( bbox[6][0], bbox[6][1], bbox[6][2]) )
     print("lattce size, pos", size, " ", pos)
-    lat = createLattice(size, pos )
+    lat = createLattice(obj,size, pos )
     
     
     modif=obj.modifiers.new("latticetemp","LATTICE")
     modif.object=lat
-    
-    
+    modif.vertex_group="templatticegrp"
     
     bpy.context.scene.update()
     bpy.ops.object.mode_set(mode='EDIT')
     
     return
  
+
+
+
+def main(context):
+    run()
+
+class EasyLattice(bpy.types.Operator):
+    """Tooltip"""
+    bl_idname = "object.easy_lattice"
+    bl_label = "Easy Lattice Creator"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object is not None
+
+    def execute(self, context):
+        main(context)
+        return {'FINISHED'}
+
+
+def register():
+    bpy.utils.register_class(EasyLattice)
+
+
+def unregister():
+    bpy.utils.unregister_class(EasyLattice)
+
+
 if __name__ == "__main__":
-    run((0,0,0))
+    register()
+
+    # test call
+    bpy.ops.object.easy_lattice()
+
+
