@@ -1,4 +1,16 @@
-#TODO Calculate the final position of objects
+bl_info = {
+    "name": "Easy Lattice Object",
+    "author": "Kursad Karatas",
+    "version": (0,5),
+    "blender": (2, 66,0),
+    "location": "View3D > Easy Lattice",
+    "description": "Create a lattice for quick creation", 
+    "warning": "",
+    "wiki_url": "",
+    "tracker_url": "",
+    "category": ""}
+
+
 
 import bpy
 import mathutils
