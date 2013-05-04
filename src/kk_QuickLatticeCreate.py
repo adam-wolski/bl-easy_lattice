@@ -222,7 +222,7 @@ def buildTrnSclMat(obj):
     mat_trans = mathutils.Matrix.Translation(obj.location)
     mat_scale = mathutils.Matrix.Scale(obj.scale[0], 4, (1, 0, 0))
     mat_scale *= mathutils.Matrix.Scale(obj.scale[1], 4, (0, 1, 0))
-    mat_scale *= mathutils.Matrix.Scale(obj.scale[2], 4, (0, 2, 0))
+    mat_scale *= mathutils.Matrix.Scale(obj.scale[2], 4, (0, 0, 1))
     
     mat_final = mat_trans * mat_scale
     

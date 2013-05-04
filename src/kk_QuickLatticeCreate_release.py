@@ -1,3 +1,4 @@
+
 bl_info = {
     "name": "Easy Lattice Object",
     "author": "Kursad Karatas",
@@ -52,7 +53,7 @@ def createLattice(obj, size, pos):
        
     ob.rotation_euler = rot
     
-     
+    
     ob.show_x_ray = True
     # Link object to scene
     scn = bpy.context.scene
@@ -68,6 +69,16 @@ def createLattice(obj, size, pos):
     lat.points_u = 4
     lat.points_v = 4
     lat.points_w = 4
+ 
+    # Set lattice points
+#    s = 0.0
+#    points = [
+#        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
+#        (-s,-s,s), (s,-s,s), (-s,s,s), (s,s,s)
+#    ]
+#    for n,pt in enumerate(lat.points):
+#        for k in range(3):
+#            #pt.co[k] = points[n][k]
     return ob
 
 
@@ -147,10 +158,6 @@ def findBBox(obj, selvertsarray):
         
         c += 1
         
-    # DEBUG
-#     matrix_decomp=obj.matrix_world.decompose()
-
-    # Based on world coords
     
     minpoint = mathutils.Vector((minx, miny, minz))
     maxpoint = mathutils.Vector((maxx, maxy, maxz))
@@ -167,8 +174,6 @@ def findBBox(obj, selvertsarray):
     size = maxpoint - minpoint
     size = mathutils.Vector((abs(size.x), abs(size.y), abs(size.z)))
     
-     
-
     # return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
     return [minpoint, maxpoint, size, middle  ]
 
@@ -179,7 +184,7 @@ def buildTrnSclMat(obj):
     mat_trans = mathutils.Matrix.Translation(obj.location)
     mat_scale = mathutils.Matrix.Scale(obj.scale[0], 4, (1, 0, 0))
     mat_scale *= mathutils.Matrix.Scale(obj.scale[1], 4, (0, 1, 0))
-    mat_scale *= mathutils.Matrix.Scale(obj.scale[2], 4, (0, 2, 0))
+    mat_scale *= mathutils.Matrix.Scale(obj.scale[2], 4, (0, 0, 1))
     
     mat_final = mat_trans * mat_scale
     
@@ -197,7 +202,9 @@ def run():
         selvertsarray = selectedVerts_Grp(obj)
         bbox = findBBox(obj, selvertsarray)
         
-             
+        # latsize=[bbox[3]-bbox[0], bbox[4]-bbox[1], bbox[5]-bbox[2]]
+        # size=mathutils.Vector( (abs(latsize[0]), abs(latsize[1]), abs(latsize[2])) )
+        
         size = bbox[2]
         # pos=mathutils.Vector( ( bbox[3][0], bbox[3][1], bbox[3][2]) )
         pos = bbox[3]
