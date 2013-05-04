@@ -179,15 +179,19 @@ def findBBox(obj, selvertsarray):
     print("-> minx miny minz",minx, miny, minz )
     print("-> maxx maxy maxz",maxx, maxy, maxz )
     
-    minpoint = mat * mathutils.Vector((minx, miny, minz))
-    maxpoint = mat * mathutils.Vector((maxx, maxy, maxz))
+    minpoint = mathutils.Vector((minx, miny, minz))
+    maxpoint = mathutils.Vector((maxx, maxy, maxz))
     
     #middle point has to be calculated based on the real world matrix
 #     middle = mat_world * mathutils.Vector((x_sum, y_sum, z_sum))/float(c)
-    middle = mat_world*((minpoint+maxpoint)/2)
+    middle = ((minpoint+maxpoint)/2)
     print("-@ minpoint", minpoint)
     print("-@ maxpoint", maxpoint)
 
+    #Calculate world coordinates
+    minpoint=mat*minpoint #Calculate only based on loc/scale
+    maxpoint=mat*maxpoint  #Calculate only based on loc/scale
+    middle=mat_world*middle #the middle has to be calculated based on the real world matrix
     
     size = maxpoint - minpoint
     size = mathutils.Vector((abs(size.x), abs(size.y), abs(size.z)))
@@ -287,7 +291,7 @@ def unregister():
 
 if __name__ == "__main__":
     register()
-
+    #run()
     # test call
 #     bpy.ops.object.easy_lattice()
 
