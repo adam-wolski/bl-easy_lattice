@@ -6,7 +6,7 @@ bl_info = {
     "location": "View3D > Easy Lattice",
     "description": "Create a lattice for shape editing",
     "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Weigths_to_Vertex_Colors_Addon",
+    "wiki_url": "http://wiki.blender.org/index.php/Easy_Lattice_Editing_Addon",
     "tracker_url": "https://bitbucket.org/kursad/blender_addons_easylattice/src",
     "category": "Mesh"}
 
@@ -33,7 +33,7 @@ def latticeDelete():
              ob.select = True
     bpy.ops.object.delete(use_global=False)        
 
-def createLattice(obj, size, pos):
+def createLattice(obj, size, pos, props):
     # Create lattice and object
     lat = bpy.data.lattices.new('LatticeEasytTemp')
     ob = bpy.data.objects.new('LatticeEasytTemp', lat)
@@ -70,12 +70,21 @@ def createLattice(obj, size, pos):
     lat.interpolation_type_u = 'KEY_LINEAR'
     lat.interpolation_type_v = 'KEY_LINEAR'
     lat.interpolation_type_w = 'KEY_LINEAR'
+    lat.interpolation_type_u = props[3]
+    lat.interpolation_type_v = props[3]
+    lat.interpolation_type_w = props[3]
+ 
     lat.use_outside = False
     lat.points_u = 4
     lat.points_v = 4
     lat.points_w = 4
+    
+    lat.points_u = props[0]
+    lat.points_v = props[1]
+    lat.points_w = props[2]
+      
  
-    # Set lattice points
+   # Set lattice points
 #    s = 0.0
 #    points = [
 #        (-s,-s,-s), (s,-s,-s), (-s,s,-s), (s,s,-s),
@@ -229,7 +238,7 @@ def buildTrnSclMat(obj):
     
     return mat_final
     
-def run():
+def run(lat_props):
     
     #-----
     # Delete all the lattices for testing
@@ -249,7 +258,7 @@ def run():
         
         print("lattce size, pos", size, " ", pos)
         latticeDelete()
-        lat = createLattice(obj, size, pos)
+        lat = createLattice(obj, size, pos, lat_props)
         
         
         modif = obj.modifiers.new("latticeeasytemp", "LATTICE")
@@ -264,21 +273,45 @@ def run():
 
 
 
-def main(context):
-    run()
+def main(context,latticeprops):
+    run(latticeprops)
 
 class EasyLattice(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "object.easy_lattice"
     bl_label = "Easy Lattice Creator"
+    
+    #my_float = bpy.props.FloatProperty(name="Some Floating Point")
+    lat_u =bpy.props.IntProperty(name="Lattice u", default=3)
+    lat_w =bpy.props.IntProperty(name="Lattice w", default=3)
+    lat_m =bpy.props.IntProperty(name="Lattice m", default=3)
+    lat_type = bpy.props.StringProperty(name="Lattice Type", default="KEY_LINEAR")
+    
+        
+    #my_bool = bpy.props.BoolProperty(name="Toggle Option")
+    #my_string = bpy.props.StringProperty(name="String Value")
 
+    
+    
     @classmethod
     def poll(cls, context):
         return context.active_object is not None
 
     def execute(self, context):
-        main(context)
+        
+        lat_u=self.lat_u
+        lat_w=self.lat_w
+        lat_m=self.lat_m
+        lat_type=self.lat_type
+        
+        lat_props=[lat_u, lat_w, lat_m,lat_type]
+
+        main(context, lat_props)
         return {'FINISHED'}
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
 
 
 def register():
