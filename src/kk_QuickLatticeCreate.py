@@ -67,23 +67,19 @@ def createLattice(obj, size, pos, props):
     scn.update()
  
     # Set lattice attributes
-    #lat.interpolation_type_u = 'KEY_LINEAR'
-    #lat.interpolation_type_v = 'KEY_LINEAR'
-    #lat.interpolation_type_w = 'KEY_LINEAR'
     lat.interpolation_type_u = props[3]
     lat.interpolation_type_v = props[3]
     lat.interpolation_type_w = props[3]
  
     lat.use_outside = False
-#     lat.points_u = 4
-#     lat.points_v = 4
-#     lat.points_w = 4
+    lat.points_u = 4
+    lat.points_v = 4
+    lat.points_w = 4
     
     lat.points_u = props[0]
     lat.points_v = props[1]
     lat.points_w = props[2]
-      
- 
+
    # Set lattice points
 #    s = 0.0
 #    points = [
@@ -285,7 +281,9 @@ class EasyLattice(bpy.types.Operator):
     lat_u =bpy.props.IntProperty(name="Lattice u", default=3)
     lat_w =bpy.props.IntProperty(name="Lattice w", default=3)
     lat_m =bpy.props.IntProperty(name="Lattice m", default=3)
-    lat_type = bpy.props.StringProperty(name="Lattice Type", default="KEY_LINEAR")
+    
+    lat_types = (('0','KEY_LINEAR','0'),('1','KEY_CARDINAL','1'),('2','KEY_BSPLINE','2'))
+    lat_type = bpy.props.EnumProperty(name="Lattice Type", items = lat_types, default='0')
     
         
     #my_bool = bpy.props.BoolProperty(name="Toggle Option")
@@ -302,8 +300,10 @@ class EasyLattice(bpy.types.Operator):
         lat_u=self.lat_u
         lat_w=self.lat_w
         lat_m=self.lat_m
-        lat_type=self.lat_type
         
+        #this is a reference to the "items" used to generate the
+        #enum property.
+        lat_type = self.lat_types[int(self.lat_type)][1]
         lat_props=[lat_u, lat_w, lat_m,lat_type]
 
         main(context, lat_props)
