@@ -67,17 +67,17 @@ def createLattice(obj, size, pos, props):
     scn.update()
  
     # Set lattice attributes
-    lat.interpolation_type_u = 'KEY_LINEAR'
-    lat.interpolation_type_v = 'KEY_LINEAR'
-    lat.interpolation_type_w = 'KEY_LINEAR'
+    #lat.interpolation_type_u = 'KEY_LINEAR'
+    #lat.interpolation_type_v = 'KEY_LINEAR'
+    #lat.interpolation_type_w = 'KEY_LINEAR'
     lat.interpolation_type_u = props[3]
     lat.interpolation_type_v = props[3]
     lat.interpolation_type_w = props[3]
  
     lat.use_outside = False
-    lat.points_u = 4
-    lat.points_v = 4
-    lat.points_w = 4
+#     lat.points_u = 4
+#     lat.points_v = 4
+#     lat.points_w = 4
     
     lat.points_u = props[0]
     lat.points_v = props[1]
