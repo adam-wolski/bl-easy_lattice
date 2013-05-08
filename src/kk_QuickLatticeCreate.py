@@ -263,6 +263,8 @@ class EasyLattice(bpy.types.Operator):
     """Tooltip"""
     bl_idname = "object.easy_lattice"
     bl_label = "Easy Lattice Creator"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "TOOLS"
     
     lat_u =bpy.props.IntProperty(name="Lattice u", default=3)
     lat_w =bpy.props.IntProperty(name="Lattice w", default=3)
@@ -295,12 +297,22 @@ class EasyLattice(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
 
+def menu_draw(self, context): 
+    self.layout.operator_context = 'INVOKE_REGION_WIN' 
+    self.layout.operator(EasyLattice.bl_idname, "Easy Lattice") 
+
 def register():
     bpy.utils.register_class(EasyLattice)
+    #bpy.utils.register
+    #menu_func = (lambda self, context: self.layout.operator('EasyLattice'))
+    #bpy.types.VIEW3D_PT_tools_objectmode.append(menu_draw)
+    bpy.types.VIEW3D_MT_edit_mesh_specials.append(menu_draw) 
 
 
 def unregister():
     bpy.utils.unregister_class(EasyLattice)
+    #bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_draw)
+    bpy.types.VIEW3D_MT_edit_mesh_specials.remove(menu_draw) 
 
 
 if __name__ == "__main__":
@@ -308,5 +320,6 @@ if __name__ == "__main__":
     #run()
     # test call
 #     bpy.ops.object.easy_lattice()
+
 
 
