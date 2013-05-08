@@ -52,12 +52,6 @@ def createLattice(obj, size, pos, props):
        
     ob.rotation_euler = rot
     
-    # Debug
-#     trans_mat = mathutils.Matrix.Translation(loc)
-#     trans_mat *= mathutils.Matrix.Scale(scl.x, 4, (1.0, 0.0, 0.0))
-#     trans_mat *= mathutils.Matrix.Scale(scl.y, 4, (0.0, 1.0, 0.0))
-#     trans_mat *= mathutils.Matrix.Scale(scl.z, 4, (0.0, 0.0, 1.0))
-#     print("trans mat", trans_mat) 
     
     ob.show_x_ray = True
     # Link object to scene
@@ -130,8 +124,8 @@ def findBBox(obj, selvertsarray):
     
     mat = buildTrnSclMat(obj)
     mat_world = obj.matrix_world
-    print("mat_final", mat)
-    print("mat_world", mat_world)
+#     print("mat_final", mat)
+#     print("mat_world", mat_world)
     
     minx = selvertsarray[0].co.x
     miny = selvertsarray[0].co.y
@@ -140,7 +134,7 @@ def findBBox(obj, selvertsarray):
     maxx = selvertsarray[0].co.x
     maxy = selvertsarray[0].co.y
     maxz = selvertsarray[0].co.z
-    print("")    
+#     print("")    
     
     # Median Centers
     x_sum = minx
@@ -170,19 +164,16 @@ def findBBox(obj, selvertsarray):
         if co.y > maxy: maxy = co.y
         if co.z > maxz: maxz = co.z
         
-        print("local cord", selvertsarray[c].co)
+#         print("local cord", selvertsarray[c].co)
 #         print("world cord", co)
         c += 1
         
-    print("total verts", len(selvertsarray))
-    print("counted verts",c)
-    # DEBUG
-#     matrix_decomp=obj.matrix_world.decompose()
-    # print ("martix decompose ", matrix_decomp)
-
+#     print("total verts", len(selvertsarray))
+#     print("counted verts",c)
+    
     # Based on world coords
-    print("-> minx miny minz",minx, miny, minz )
-    print("-> maxx maxy maxz",maxx, maxy, maxz )
+#     print("-> minx miny minz",minx, miny, minz )
+#     print("-> maxx maxy maxz",maxx, maxy, maxz )
     
     minpoint = mathutils.Vector((minx, miny, minz))
     maxpoint = mathutils.Vector((maxx, maxy, maxz))
@@ -190,8 +181,8 @@ def findBBox(obj, selvertsarray):
     #middle point has to be calculated based on the real world matrix
 #     middle = mat_world * mathutils.Vector((x_sum, y_sum, z_sum))/float(c)
     middle = ((minpoint+maxpoint)/2)
-    print("-@ minpoint", minpoint)
-    print("-@ maxpoint", maxpoint)
+#     print("-@ minpoint", minpoint)
+#     print("-@ maxpoint", maxpoint)
 
     #Calculate world coordinates
     minpoint=mat*minpoint #Calculate only based on loc/scale
@@ -209,13 +200,11 @@ def findBBox(obj, selvertsarray):
 #    size=maxpoint-minpoint
 #    size=mathutils.Vector((abs(size.x),abs(size.y),abs(size.z)))
     #####################################################
-    # DEBUG
-#     bpy.context.scene.cursor_location=middle
     
     #print("-@ world matrix", obj.matrix_world)
-    print("-@ min - max", minpoint, " ", maxpoint)
-    print("-@ size", size)
-    print("-@ median point ->", middle)
+#     print("-@ min - max", minpoint, " ", maxpoint)
+#     print("-@ size", size)
+#     print("-@ median point ->", middle)
 
     # return [minx, miny, minz, maxx, maxy, maxz, pos_median  ]
     return [minpoint, maxpoint, size, middle  ]
@@ -236,8 +225,6 @@ def buildTrnSclMat(obj):
     
 def run(lat_props):
     
-    #-----
-    # Delete all the lattices for testing
     
     obj = bpy.context.active_object
     if obj.type == "MESH":
@@ -252,7 +239,7 @@ def run(lat_props):
         # pos=mathutils.Vector( ( bbox[3][0], bbox[3][1], bbox[3][2]) )
         pos = bbox[3]
         
-        print("lattce size, pos", size, " ", pos)
+#         print("lattce size, pos", size, " ", pos)
         latticeDelete()
         lat = createLattice(obj, size, pos, lat_props)
         
@@ -277,18 +264,12 @@ class EasyLattice(bpy.types.Operator):
     bl_idname = "object.easy_lattice"
     bl_label = "Easy Lattice Creator"
     
-    #my_float = bpy.props.FloatProperty(name="Some Floating Point")
     lat_u =bpy.props.IntProperty(name="Lattice u", default=3)
     lat_w =bpy.props.IntProperty(name="Lattice w", default=3)
     lat_m =bpy.props.IntProperty(name="Lattice m", default=3)
     
     lat_types = (('0','KEY_LINEAR','0'),('1','KEY_CARDINAL','1'),('2','KEY_BSPLINE','2'))
     lat_type = bpy.props.EnumProperty(name="Lattice Type", items = lat_types, default='0')
-    
-        
-    #my_bool = bpy.props.BoolProperty(name="Toggle Option")
-    #my_string = bpy.props.StringProperty(name="String Value")
-
     
     
     @classmethod
