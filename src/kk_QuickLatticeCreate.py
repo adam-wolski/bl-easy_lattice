@@ -1,18 +1,18 @@
 bl_info = {
-    "name": "Easy Lattice Object",
-    "author": "Kursad Karatas",
-    "version": ( 0, 5 ),
-    "blender": ( 2, 66, 0 ),
-    "location": "View3D > Easy Lattice",
-    "description": "Create a lattice for shape editing",
-    "warning": "",
-    "wiki_url": "http://wiki.blender.org/index.php/Easy_Lattice_Editing_Addon",
-    "tracker_url": "https://bitbucket.org/kursad/blender_addons_easylattice/src",
-    "category": "Mesh"}
+            "name": "Easy Lattice Object",
+            "author": "Kursad Karatas",
+            "version": ( 0, 5 ),
+            "blender": ( 2, 66, 0 ),
+            "location": "View3D > Easy Lattice",
+            "description": "Create a lattice for shape editing",
+            "warning": "",
+            "wiki_url": "http://wiki.blender.org/index.php/Easy_Lattice_Editing_Addon",
+            "tracker_url": "https://bitbucket.org/kursad/blender_addons_easylattice/src",
+            "category": "Mesh"}
 
 import bpy
 import mathutils
- 
+import math
  
 # Cleanup
 def modifiersDelete( obj ):
@@ -42,17 +42,19 @@ def createLattice( obj, size, pos, props ):
     rot = getTransformations( obj )[1]
     scl = getTransformations( obj )[2]
     
-     
+    #get the combined rotation matrix and apply to the lattice
+    #ob.matrix_world=buildRot_WorldMat(obj)*ob.matrix_world
+    
+    #the position comes from the bbox 
     ob.location = pos
         # ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
     
-    # size=values from selection bbox
+    #the size  from bbox bbox
     ob.scale = size
         # ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
-       
-    ob.rotation_euler = rot
     
-    #ob.matrix_world*=obj.matrix_world
+    #rotation come from the combined obj world matrix    
+    ob.rotation_euler = buildRot_World(obj)
     
     ob.show_x_ray = True
     # Link object to scene
@@ -236,27 +238,31 @@ def buildTrnScl_WorldMat( obj ):
     
     return mat_final
 
-    
+#Feature use    
 def buildRot_WorldMat( obj ):
     # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
     # The rotation is applied at obejct level if there is any
     loc,rot,scl=obj.matrix_world.decompose()
     
-    mat_rot = mathutils.Matrix.Rotation(radian(rot[0]), 4,'X') 
-    mat_rot *= mathutils.Matrix.Rotation(radian(rot[1]), 4,'Y')
-    mat_rot *= mathutils.Matrix.Rotation(radian(rot[2]), 4,'Z')
+    rot=rot.to_euler()
     
-    return mat_final
+    mat_rot = mathutils.Matrix.Rotation(rot[0], 4,'X') 
+    mat_rot *= mathutils.Matrix.Rotation(rot[1],4,'Z')
+    mat_rot *= mathutils.Matrix.Rotation(rot[2], 4,'Y')
 
+    
+    return mat_rot
 
+#Feature use
 def buildTrn_WorldMat( obj ):
     # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
     # The rotation is applied at obejct level if there is any
     loc,rot,scl=obj.matrix_world.decompose()
     mat_trans = mathutils.Matrix.Translation( loc)
     
-    return mat_final
+    return mat_trans
 
+#Feature use
 def buildScl_WorldMat( obj ):
     # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
     # The rotation is applied at obejct level if there is any
@@ -266,19 +272,26 @@ def buildScl_WorldMat( obj ):
     mat_scale *= mathutils.Matrix.Scale( scl[1], 4, ( 0, 1, 0 ) )
     mat_scale *= mathutils.Matrix.Scale( scl[2], 4, ( 0, 0, 1 ) )
     
-    return mat_final
+    return mat_scale
 
+    
+def buildRot_World( obj ):
+    # This function builds a real world matrix that encodes translation and scale and it leaves out the rotation matrix
+    # The rotation is applied at obejct level if there is any
+    loc,rot,scl=obj.matrix_world.decompose()
+    
+    rot=rot.to_euler()
+    
+    return rot
 
 
 def run( lat_props ):
-    
     
     obj = bpy.context.active_object
     if obj.type == "MESH":
         modifiersDelete( obj )
         selvertsarray = selectedVerts_Grp( obj )
         bbox = findBBox( obj, selvertsarray )
-        
         
         size = bbox[2]
         # pos=mathutils.Vector( ( bbox[3][0], bbox[3][1], bbox[3][2]) )
@@ -287,7 +300,6 @@ def run( lat_props ):
 #         print("lattce size, pos", size, " ", pos)
         latticeDelete()
         lat = createLattice( obj, size, pos, lat_props )
-        
         
         modif = obj.modifiers.new( "latticeeasytemp", "LATTICE" )
         modif.object = lat
@@ -341,7 +353,6 @@ class EasyLattice( bpy.types.Operator ):
         wm = context.window_manager
         return wm.invoke_props_dialog( self )
 
-
 def menu_draw( self, context ): 
     self.layout.operator_context = 'INVOKE_REGION_WIN' 
     self.layout.operator( EasyLattice.bl_idname, "Easy Lattice" ) 
@@ -359,12 +370,11 @@ def unregister():
     # bpy.types.VIEW3D_PT_tools_objectmode.remove(menu_draw)
     bpy.types.VIEW3D_MT_edit_mesh_specials.remove( menu_draw ) 
 
-
 if __name__ == "__main__":
     register()
     # run()
-    # test call
 #     bpy.ops.object.easy_lattice()
+
 
 
 
