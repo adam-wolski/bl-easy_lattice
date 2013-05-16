@@ -50,24 +50,23 @@ def modifiersDelete( obj ):
 # Cleanup
 def modifiersApplyRemove( obj ):
     
-    print("passed object is", obj)
-    
-    print("current object is", bpy.context.active_object)
+#     print("passed object is", obj)
+#     print("current object is", bpy.context.active_object)
     
     bpy.ops.object.select_all( action = 'DESELECT' )
     bpy.ops.object.select_pattern(pattern=obj.name, extend=False)
     bpy.context.scene.objects.active=obj
     
     for mod in obj.modifiers:
-        print("modifier is ", mod)
+#         print("modifier is ", mod)
         if mod.name == "latticeeasytemp":
 #             try:
             if mod.object == bpy.data.objects['LatticeEasytTemp']:
-                print("mod object is ", mod.object)
-                print("applying modifier", mod," - ", mod.name)
+#                 print("mod object is ", mod.object)
+#                 print("applying modifier", mod," - ", mod.name)
                 
                 #obj.select= True
-                print("current object is", bpy.context.active_object)
+#                 print("current object is", bpy.context.active_object)
                 bpy.ops.object.modifier_apply( apply_as = 'DATA', modifier = mod.name )
                 #obj.modifiers.remove(mod)
                     
@@ -101,7 +100,7 @@ def createLattice( obj, size, pos, props ):
     ob.location = pos
         #ob.location=(pos.x+loc.x,pos.y+loc.y,pos.z+loc.z)
     
-    #the size  from bbox bbox
+    #the size  from bbox 
     ob.scale = size
         #ob.scale=(size.x*scl.x, size.y*scl.y,size.z*scl.z)
     
@@ -308,7 +307,7 @@ def buildRot_World( obj ):
 
 def run( lat_props ):
     
-    print("<-------------------------------->")
+#     print("<-------------------------------->")
     #obj = bpy.context.active_object
     obj = bpy.context.object
     
