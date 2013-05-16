@@ -337,10 +337,16 @@ def run( lat_props ):
     
     if obj.type == "LATTICE":
         
+        
         if bpy.types.Scene.activelatticeobject:
             name = bpy.types.Scene.activelatticeobject
             print("last active latticed object", name)
-            
+        
+        
+            #Are we in edit lattice mode? If so move on to object mode
+            if obj.mode=="EDIT":
+                bpy.ops.object.editmode_toggle()
+                    
             for ob in bpy.context.scene.objects:
                 if ob.name == name:  # found the object with the lattice mod
                     print("apply mod on", ob)
