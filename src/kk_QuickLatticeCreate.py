@@ -332,6 +332,11 @@ def run( lat_props ):
         modif.object = lat
         modif.vertex_group = "templatticegrp"
         
+        
+        bpy.ops.object.select_all( action = 'DESELECT' )
+        bpy.ops.object.select_pattern(pattern=lat.name, extend=False)
+        bpy.context.scene.objects.active=lat
+        
         bpy.context.scene.update()
         bpy.ops.object.mode_set( mode = 'EDIT' )
     
